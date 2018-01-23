@@ -27,10 +27,9 @@ import com.google.gson.Gson;
 public class FingerPrinterApp implements ActionListener {
     private final JFrame mainFrame = new JFrame();// creating instance of JFrame
     private final JLabel jLabelImage = new JLabel();
-    private final JLabel statusBar = new JLabel("Vui lòng quẹt vân tay");
+    private final JLabel statusBar = new JLabel("Please place your finger");
     private int actionType;
     private String userId;
-    private JButton btnAction, btnReset;
     private HU20IntegrationManagement hu20IntegrationManagement;
     
     private void init() {
@@ -41,9 +40,8 @@ public class FingerPrinterApp implements ActionListener {
     private void initHU20() {
         try {
             this.hu20IntegrationManagement = new HU20IntegrationManagement();
-            statusBar.setText("Khởi tạo thành công, vui lòng quẹt vân tay");
+            statusBar.setText("Please place your fingerprint in the device");
             this.hu20IntegrationManagement.init();
-            this.btnAction.setEnabled(true);
             jLabelImage.setIcon(new ImageIcon(hu20IntegrationManagement.getImg1gray()));
         } catch (SMVNException ex) {
             this.statusBar.setText(ex.printError());
@@ -62,30 +60,27 @@ public class FingerPrinterApp implements ActionListener {
         imageContainer.add(this.jLabelImage);// adding button in JFrame
         this.jLabelImage.setBorder(BorderFactory.createLineBorder(Color.black));
         
-        
+        JButton btnAction, btnReset;
         if (this.actionType == 1) {
-            this.btnAction = new JButton("Đăng ký");
+            btnAction = new JButton("Registration");
         } else if (this.actionType == 2) {
-            this.btnAction = new JButton("Xác thực");
+            btnAction = new JButton("Authentication");
         } else if (this.actionType == 3) {
-            this.btnAction = new JButton("Lấy thông tin");
+            btnAction = new JButton("Get information");
         } else {
-            throw new RuntimeException("Action type không đúng");
+            throw new RuntimeException("Action type incorrect");
         }
-        this.btnAction.addActionListener(this);
-        this.btnAction.setEnabled(false);
-        
-        this.btnReset = new JButton("Làm lại");
-        this.btnReset.addActionListener(new ActionListener() {
+        btnAction.addActionListener(this);
+        btnReset = new JButton("Reset");
+        btnReset.addActionListener(new ActionListener() {
+            
             @Override
             public void actionPerformed(ActionEvent e) {
-                btnAction.setEnabled(false);
                 try {
                     if (hu20IntegrationManagement == null || !hu20IntegrationManagement.isInitialized()) {
                         hu20IntegrationManagement = new HU20IntegrationManagement();
                     }
                     hu20IntegrationManagement.init();
-                    btnAction.setEnabled(true);
                     jLabelImage.setIcon(new ImageIcon(hu20IntegrationManagement.getImg1gray()));
                 } catch (SMVNException ex) {
                     statusBar.setText(ex.printError());
@@ -111,22 +106,22 @@ public class FingerPrinterApp implements ActionListener {
         FingerPrinterApp fingerPrinterApp = new FingerPrinterApp();
         
         if (args.length == 0) {
-            throw new RuntimeException("Tham số truyền vào không hợp lệ");
+            throw new RuntimeException("Input parameter is invalid");
         }
         int actionType = Integer.parseInt(args[0]);
         fingerPrinterApp.setActionType(actionType);
         if (actionType == 1 ) {
             if (args.length < 2) {
-                throw new RuntimeException("Tham số truyền vào không hợp lệ");
+                throw new RuntimeException("Input parameter is invalid");
             }
             fingerPrinterApp.setUserId(args[1]);
         } else if (actionType == 2 ){
             if (args.length < 1) {
-                System.out.print("Tham số truyền vào không hợp lệ");
+                System.out.print("Input parameter is invalid");
                 return;
             }
         } else {
-            throw new RuntimeException("Không hỗ trợ action type = 3");
+            throw new RuntimeException("No support action type = 3");
         }
         
         
@@ -136,30 +131,25 @@ public class FingerPrinterApp implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent event) {
-        this.btnAction.setEnabled(false);
         if (this.hu20IntegrationManagement == null) {
-            JOptionPane.showMessageDialog(this.mainFrame, "Đã có lỗi xảy ra");
-            System.exit(0);
             return;
         }
         CentagateIntegrationService service = new CentagateIntegrationService();
-        String firstFingerPrint = Base64.encodeBase64String(hu20IntegrationManagement.getImageBuffer());
+        String firstFingerPrint = hu20IntegrationManagement.getImageMinueu();
         switch (this.actionType) {
             case 1:
-                JOptionPane.showMessageDialog(this.mainFrame, "Vui long quet van tay lan 2");
+                JOptionPane.showMessageDialog(this.mainFrame, "Please scan your fingerprint twice");
                 try {
                     hu20IntegrationManagement.init();
                     jLabelImage.setIcon(new ImageIcon(hu20IntegrationManagement.getImg1gray()));
                 } catch (SMVNException e1) {
-                    JOptionPane.showMessageDialog(this.mainFrame, e1.getErrorMessage());
-                    System.exit(0);
                     break;
                 }
                 
-                String secondFingerPrint = Base64.encodeBase64String(hu20IntegrationManagement.getImageBuffer());
+                String secondFingerPrint =hu20IntegrationManagement.getImageMinueu();
                 
                 JPanel panel = new JPanel();
-                JLabel label = new JLabel("Vui lòng nhập mã truy cập cho user "+this.userId+":");
+                JLabel label = new JLabel("Please enter the userID "+this.userId+":");
                 JPasswordField pass = new JPasswordField(10);
                 panel.add(label);
                 panel.add(pass);
@@ -169,35 +159,35 @@ public class FingerPrinterApp implements ActionListener {
                                          null, options, options[0]);
                 if(option != 0) // pressing OK button
                 {
-                    this.btnAction.setEnabled(true);
                     break;
                 }
                 System.out.println("SENDING REQUEST PLEASE WAIT");
                 Map<String, String> result = service.login(this.userId, String.valueOf(pass.getPassword()), "", "", "");
                 if (!"0".equals(result.get("code"))) {
-                    JOptionPane.showMessageDialog(this.mainFrame, "Đã có lỗi xảy ra");
-                    System.exit(0);
+                    System.out.println(result);
+                    JOptionPane.showMessageDialog(this.mainFrame, "An error occurred");
                     return;
                 }
-                System.out.println(result);
+                System.out.println("result: "+result);
                 Gson gson = new Gson(); /* GSON library */
                 Map<String, String> returnValue = gson.fromJson(result.get("object"), HashMap.class);
-                result = service.register(this.userId, returnValue.get("userId"), returnValue.get("authToken"), firstFingerPrint, secondFingerPrint);
+                result = service.register(this.userId, returnValue.get("userId"), returnValue.get("authToken"), returnValue.get("secretCode"), firstFingerPrint, secondFingerPrint);
                 System.out.println("result = " + result);
                 if ("0".equals(result.get("code"))) {
-                    JOptionPane.showMessageDialog(this.mainFrame, "Đăng ký vân tay với user thành công");
+                    JOptionPane.showMessageDialog(this.mainFrame, "User fingerprint registration is success");
                 } else {
-                    JOptionPane.showMessageDialog(this.mainFrame, "Có lỗi xảy ra");
+                    System.out.println(result);
+                    JOptionPane.showMessageDialog(this.mainFrame, "An error occurred");
                 }
                 
-                this.mainFrame.setVisible(false);
+                /*this.mainFrame.setVisible(false);
                 this.mainFrame.dispose();
-                System.exit(100);
+                System.exit(100);*/
                 break;
             case 2:
                 result = service.authen(this.userId, firstFingerPrint);
                 if ("0".equals(result.get("code"))) {
-                    JOptionPane.showMessageDialog(this.mainFrame, "Xác nhận vân tay với user thành công");
+                    JOptionPane.showMessageDialog(this.mainFrame, "User fingerprint verification is success");
                 } else {
                     JOptionPane.showMessageDialog(this.mainFrame, result.get("message"));
                 }

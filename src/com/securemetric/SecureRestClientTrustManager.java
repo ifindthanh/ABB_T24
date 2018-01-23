@@ -25,6 +25,7 @@ import javax.net.ssl.TrustManager;
 
 import javax.net.ssl.X509TrustManager;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 public class SecureRestClientTrustManager implements X509TrustManager {
@@ -85,14 +86,16 @@ public class SecureRestClientTrustManager implements X509TrustManager {
         return null;
     }
 
-    public String calculateHmac256(String secret, String message) {
+    
+    
+    public String calculateHmac256_post(String secret, String message) {
         String hash = null;
         try {
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secret_key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(StringUtils.getBytesUtf8(secret), "HmacSHA256");
             sha256_HMAC.init(secret_key);
-
-            hash = Hex.encodeHexString(sha256_HMAC.doFinal(message.getBytes()));
+            byte [] bytes = sha256_HMAC.doFinal(StringUtils.getBytesUtf8(message));
+            hash = Hex.encodeHexString(bytes);
 
         } catch (Exception e) {
             e.printStackTrace();
