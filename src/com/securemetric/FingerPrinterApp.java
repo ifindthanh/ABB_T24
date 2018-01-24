@@ -19,8 +19,6 @@ import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-import org.apache.commons.codec.binary.Base64;
-
 import com.google.gson.Gson;
 
 
@@ -80,6 +78,7 @@ public class FingerPrinterApp implements ActionListener {
                     if (hu20IntegrationManagement == null || !hu20IntegrationManagement.isInitialized()) {
                         hu20IntegrationManagement = new HU20IntegrationManagement();
                     }
+                    statusBar.setText("Please place your fingerprint in the device");
                     hu20IntegrationManagement.init();
                     jLabelImage.setIcon(new ImageIcon(hu20IntegrationManagement.getImg1gray()));
                 } catch (SMVNException ex) {
@@ -110,20 +109,14 @@ public class FingerPrinterApp implements ActionListener {
         }
         int actionType = Integer.parseInt(args[0]);
         fingerPrinterApp.setActionType(actionType);
-        if (actionType == 1 ) {
+        if (actionType == 1 || actionType == 2 ) {
             if (args.length < 2) {
                 throw new RuntimeException("Input parameter is invalid");
             }
             fingerPrinterApp.setUserId(args[1]);
-        } else if (actionType == 2 ){
-            if (args.length < 1) {
-                System.out.print("Input parameter is invalid");
-                return;
-            }
-        } else {
+        } else if (actionType != 3 ){
             throw new RuntimeException("No support action type = 3");
         }
-        
         
         fingerPrinterApp.init();
       

@@ -19,7 +19,6 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -44,12 +43,12 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 public class CentagateIntegrationService {
 
     /* The integration key. This is the key you get from the update app page inside the CENTAGATE */
-    // private final String integrationKey =
-    // "e37743a026a882a3c9556f1a663ec42b62776df93f6baa664ec19555a338c9cc";
-    private final static String INTEGRATION_KEY = "c1af19a8723a683f0c3c2604c325e8e3025bc743ad81606a452684384dcfc74f";
+     private final String INTEGRATION_KEY =
+     "e37743a026a882a3c9556f1a663ec42b62776df93f6baa664ec19555a338c9cc";
+//    private final static String INTEGRATION_KEY = "c1af19a8723a683f0c3c2604c325e8e3025bc743ad81606a452684384dcfc74f";
     /* The secret key. This is the key you get from the update app page inside the CENTAGATE */
-    // private final String secretKey = "AsLwzUHtq8eA";
-    private final static String SECRET_KEY = "V6tm8tzzQX1z";
+     private final String SECRET_KEY = "AsLwzUHtq8eA";
+//    private final static String SECRET_KEY = "V6tm8tzzQX1z";
     private String unixTimestamp;
 
     public Map<String, String> login(
@@ -62,6 +61,7 @@ public class CentagateIntegrationService {
 
             /* The current time in second (GMT+00:00) */
             unixTimestamp = String.valueOf(new Date().getTime() / 1000L);
+            System.out.println(unixTimestamp);
             /* Put all the required parameters for basic authentication */
             Map<String, String> map = new HashMap<String, String>();
             map.put("username", username);
@@ -81,10 +81,11 @@ public class CentagateIntegrationService {
             Gson gson = new Gson(); /* GSON library */
             Client client = buildClient();
             WebResource service = client.resource(
-                "https://office.securemetric.com/CentagateWS/webresources/auth/authBasic");
+                "https://demo.centagate.com/CentagateWS/webresources/auth/authBasic");
             String[] types = new String[] {MediaType.APPLICATION_JSON};
             ClientResponse response = (ClientResponse) service.accept(types).post(
                 ClientResponse.class, gson.toJson(map));
+            System.out.println("Test: " + response);
             if (response.getStatus() == 200) {
                 authString = (String) response.getEntity(String.class);
                 responseMap = gson.fromJson(authString, HashMap.class);
@@ -122,12 +123,12 @@ public class CentagateIntegrationService {
             Gson gson = new Gson(); /* GSON library */
 
             Client client = buildClient();
-            WebResource service = client.resource("https://office.securemetric.com/CentagateWS/webresources");
+            WebResource service = client.resource("https://demo.centagate.com/CentagateWS/webresources");
             // service.path("token").path("registerFprint").path(username).path(authToken);
 
             String[] types = new String[] {MediaType.APPLICATION_JSON};
             ClientResponse response = (ClientResponse) service
-                .path("token").path("registerFprint").path(username).accept(types).put(
+                .path("token").path("registerFprint").path(username).path(cenToken).accept(types).put(
                     ClientResponse.class, gson.toJson(map));
             if (response.getStatus() == 200) {
                 authString = (String) response.getEntity(String.class);
@@ -159,38 +160,40 @@ public class CentagateIntegrationService {
             map.put("fprint", fingerprint);
             map.put("integrationKey", INTEGRATION_KEY);
             map.put("unixTimestamp", unixTimestamp);
+            
             String ipAddress = InetAddress.getLocalHost().getHostAddress();
             map.put("ipAddress", ipAddress);
 
-            String userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko";
+            String userAgent = "";
             map.put("userAgent", userAgent);
 
-            String browserFp = "b9068aa37bbd7cf2aacf1e2c1cecc1a0";
+            String browserFp = "";
             map.put("browserFp", browserFp);
             map.put(
-                "hmac", CentagateIntegrationService.calculateHmac256(
+                "hmac", calculateHmac256(
                     SECRET_KEY, username
-                        + INTEGRATION_KEY + unixTimestamp + fingerprint + "" + ipAddress + userAgent + browserFp));
+                        + INTEGRATION_KEY + unixTimestamp + fingerprint + ipAddress + userAgent + browserFp));
 
             /* Read the output returned from the authentication */
             Gson gson = new Gson(); /* GSON library */
 
             System.setProperty("jsse.enableSNIExtension", "false");
-            Client client = Client.create();
+            Client client = buildClient();
             WebResource service = client.resource(
-                "https://office.securemetric.com/CentagateWS/webresources/auth/authFprint");
+                "https://demo.centagate.com/CentagateWS/webresources/auth/authFprint");
             String[] types = new String[] {MediaType.APPLICATION_JSON};
             ClientResponse response = (ClientResponse) service.accept(types).post(
                 ClientResponse.class, gson.toJson(map));
+            System.out.println(response);
             if (response.getStatus() == 200) {
                 authString = (String) response.getEntity(String.class);
                 responseMap = gson.fromJson(authString, HashMap.class);
             }
-
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        System.out.println(responseMap);
         return responseMap;
     }
 
@@ -254,10 +257,7 @@ public class CentagateIntegrationService {
 
     private static String generateCenToken(String secretCode, String userName, String hashed) {
 
-        String calculateHmac256 = CentagateIntegrationService.calculateHmac256(secretCode, userName.concat(hashed));
-        System.out.println(calculateHmac256);
-        System.out.println(secretCode);
-        return calculateHmac256;
+        return CentagateIntegrationService.calculateHmac256(secretCode, userName.concat(hashed));
 
     }
 }
