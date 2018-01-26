@@ -2,6 +2,7 @@ package com.securemetric;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,7 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.SwingConstants;
+import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 import com.google.gson.Gson;
@@ -25,9 +27,9 @@ import com.google.gson.Gson;
 public class FingerPrinterApp implements ActionListener {
     private final JFrame mainFrame = new JFrame();// creating instance of JFrame
     private final JLabel jLabelImage = new JLabel();
-    private final JLabel statusBar = new JLabel("Please place your finger");
+    private final JLabel statusBar = new JLabel("");
     private int actionType;
-    private String userId;
+    private String userName;
     private HU20IntegrationManagement hu20IntegrationManagement;
     
     private void init() {
@@ -91,9 +93,22 @@ public class FingerPrinterApp implements ActionListener {
         buttonContainer.add(btnAction);
         buttonContainer.add(btnReset);
         
-        this.statusBar.setHorizontalAlignment(SwingConstants.CENTER);
-        this.statusBar.setVerticalAlignment(SwingConstants.CENTER);
-        this.mainFrame.add(this.statusBar, BorderLayout.NORTH);
+        
+        JPanel statusContainer = new JPanel();
+        JTextField userNameTxt = new JTextField();
+        userNameTxt.setEnabled(false);
+        userNameTxt.setText(this.userName);
+        userNameTxt.setHorizontalAlignment(JTextField
+            .CENTER);
+        
+        userNameTxt.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        userNameTxt.setDisabledTextColor(Color.BLUE);
+        statusContainer.setLayout(new BoxLayout(statusContainer, BoxLayout.Y_AXIS));
+        statusContainer.add(userNameTxt);
+        statusContainer.add(this.statusBar);
+        statusBar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        this.mainFrame.add(statusContainer, BorderLayout.NORTH);
         this.mainFrame.add(buttonContainer, BorderLayout.SOUTH);
         this.mainFrame.add(imageContainer, BorderLayout.CENTER);
         this.mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -142,7 +157,7 @@ public class FingerPrinterApp implements ActionListener {
                 String secondFingerPrint =hu20IntegrationManagement.getImageMinueu();
                 
                 JPanel panel = new JPanel();
-                JLabel label = new JLabel("Please enter the userID "+this.userId+":");
+                JLabel label = new JLabel("Please enter the userID "+this.userName+":");
                 JPasswordField pass = new JPasswordField(10);
                 panel.add(label);
                 panel.add(pass);
@@ -154,41 +169,38 @@ public class FingerPrinterApp implements ActionListener {
                 {
                     break;
                 }
-                System.out.println("SENDING REQUEST PLEASE WAIT");
-                Map<String, String> result = service.login(this.userId, String.valueOf(pass.getPassword()), "", "", "");
+                Map<String, String> result = service.login(this.userName, String.valueOf(pass.getPassword()), "", "", "");
                 if (!"0".equals(result.get("code"))) {
-                    System.out.println(result);
                     JOptionPane.showMessageDialog(this.mainFrame, "An error occurred");
                     return;
                 }
-                System.out.println("result: "+result);
                 Gson gson = new Gson(); /* GSON library */
                 Map<String, String> returnValue = gson.fromJson(result.get("object"), HashMap.class);
-                result = service.register(this.userId, returnValue.get("userId"), returnValue.get("authToken"), returnValue.get("secretCode"), firstFingerPrint, secondFingerPrint);
-                System.out.println("result = " + result);
+                result = service.register(this.userName, returnValue.get("userId"), returnValue.get("authToken"), returnValue.get("secretCode"), firstFingerPrint, secondFingerPrint);
                 if ("0".equals(result.get("code"))) {
                     JOptionPane.showMessageDialog(this.mainFrame, "User fingerprint registration is success");
+                    System.out.println("result=true;code=1;message=\"User fingerprint registration is success\"");
                 } else {
-                    System.out.println(result);
                     JOptionPane.showMessageDialog(this.mainFrame, "An error occurred");
+                    System.out.println("result=false;code=0;message=\""+result.get("message")+"\"");
                 }
                 
-                /*this.mainFrame.setVisible(false);
+                this.mainFrame.setVisible(false);
                 this.mainFrame.dispose();
-                System.exit(100);*/
-                break;
+                System.exit(100);
             case 2:
-                result = service.authen(this.userId, firstFingerPrint);
+                result = service.authen(this.userName, firstFingerPrint);
                 if ("0".equals(result.get("code"))) {
                     JOptionPane.showMessageDialog(this.mainFrame, "User fingerprint verification is success");
+                    System.out.println("result=true;code=1;message=\"User fingerprint verification is success\"");
                 } else {
                     JOptionPane.showMessageDialog(this.mainFrame, result.get("message"));
+                    System.out.println("result=false;code=0;message=\""+result.get("message")+"\"");
                 }
                 
-                /*this.mainFrame.setVisible(false);
+                this.mainFrame.setVisible(false);
                 this.mainFrame.dispose();
-                System.exit(0);*/
-                break;
+                System.exit(0);
             default:
                 break;
         }
@@ -206,12 +218,12 @@ public class FingerPrinterApp implements ActionListener {
 
     
     public String getUserId() {
-        return userId;
+        return userName;
     }
 
     
     public void setUserId(String userId) {
-        this.userId = userId;
+        this.userName = userId;
     }
 
     

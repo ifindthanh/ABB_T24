@@ -61,7 +61,6 @@ public class CentagateIntegrationService {
 
             /* The current time in second (GMT+00:00) */
             unixTimestamp = String.valueOf(new Date().getTime() / 1000L);
-            System.out.println(unixTimestamp);
             /* Put all the required parameters for basic authentication */
             Map<String, String> map = new HashMap<String, String>();
             map.put("username", username);
@@ -85,7 +84,6 @@ public class CentagateIntegrationService {
             String[] types = new String[] {MediaType.APPLICATION_JSON};
             ClientResponse response = (ClientResponse) service.accept(types).post(
                 ClientResponse.class, gson.toJson(map));
-            System.out.println("Test: " + response);
             if (response.getStatus() == 200) {
                 authString = (String) response.getEntity(String.class);
                 responseMap = gson.fromJson(authString, HashMap.class);
@@ -104,7 +102,6 @@ public class CentagateIntegrationService {
         String authString = null;
         Map<String, String> responseMap = new HashMap<String, String>();
         try {
-            System.out.println("secretKey: " + SECRET_KEY);
             /*
              * String authTokens=secureRestClientTrustManager.calculateHmac256_post(
              * secretKey, username+integrationKey+unixTimestamp+authToken+ipAddress+"");
@@ -133,9 +130,7 @@ public class CentagateIntegrationService {
             if (response.getStatus() == 200) {
                 authString = (String) response.getEntity(String.class);
                 responseMap = gson.fromJson(authString, HashMap.class);
-                System.out.println("Test: " + response);
             } else {
-                System.out.println("Test: " + response);
             }
 
         } catch (Exception e) {
@@ -184,7 +179,6 @@ public class CentagateIntegrationService {
             String[] types = new String[] {MediaType.APPLICATION_JSON};
             ClientResponse response = (ClientResponse) service.accept(types).post(
                 ClientResponse.class, gson.toJson(map));
-            System.out.println(response);
             if (response.getStatus() == 200) {
                 authString = (String) response.getEntity(String.class);
                 responseMap = gson.fromJson(authString, HashMap.class);
@@ -193,7 +187,6 @@ public class CentagateIntegrationService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(responseMap);
         return responseMap;
     }
 
