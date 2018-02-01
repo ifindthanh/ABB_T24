@@ -7,6 +7,5 @@
 	<classpathentry kind="lib" path="lib/gson-2.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-all-1.9.0.jar"/>
 	<classpathentry kind="lib" path="lib/jersey-bundle-1.18.jar" sourcepath="C:/Users/MyPC/AppData/Local/Temp/.org.sf.feeling.decompiler1514962796304/source/jersey-bundle-1.18-sources.jar"/>
-	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.34.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
