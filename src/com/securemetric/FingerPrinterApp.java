@@ -56,15 +56,17 @@ public class FingerPrinterApp implements ActionListener {
         this.jLabelImage.setSize(300, 400);
         this.jLabelImage.setBackground(Color.ORANGE);
         
-        this.jLabelImage.setIcon(new ImageIcon("resources/default.png"));
+        System.out.println();
+        
+        this.jLabelImage.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("default.png")));
         imageContainer.add(this.jLabelImage);// adding button in JFrame
         this.jLabelImage.setBorder(BorderFactory.createLineBorder(Color.black));
         
         JButton btnAction, btnReset;
         if (this.actionType == 1) {
-            btnAction = new JButton("Registration");
+            btnAction = new JButton("Register");
         } else if (this.actionType == 2) {
-            btnAction = new JButton("Authentication");
+            btnAction = new JButton("Authenticate");
         } else if (this.actionType == 3) {
             btnAction = new JButton("Get information");
         } else {
@@ -130,7 +132,7 @@ public class FingerPrinterApp implements ActionListener {
             }
             fingerPrinterApp.setUserId(args[1]);
         } else if (actionType != 3 ){
-            throw new RuntimeException("No support action type = 3");
+            throw new RuntimeException("Does not support action type = 3");
         }
         
         fingerPrinterApp.init();
@@ -146,7 +148,7 @@ public class FingerPrinterApp implements ActionListener {
         String firstFingerPrint = hu20IntegrationManagement.getImageMinueu();
         switch (this.actionType) {
             case 1:
-                JOptionPane.showMessageDialog(this.mainFrame, "Please scan your fingerprint twice");
+                JOptionPane.showMessageDialog(this.mainFrame, "Please scan your fingerprint once again");
                 try {
                     hu20IntegrationManagement.init();
                     jLabelImage.setIcon(new ImageIcon(hu20IntegrationManagement.getImg1gray()));
@@ -171,7 +173,7 @@ public class FingerPrinterApp implements ActionListener {
                 }
                 Map<String, String> result = service.login(this.userName, String.valueOf(pass.getPassword()), "", "", "");
                 if (!"0".equals(result.get("code"))) {
-                    JOptionPane.showMessageDialog(this.mainFrame, "An error occurred");
+                    JOptionPane.showMessageDialog(this.mainFrame, result.get("message"));
                     return;
                 }
                 Gson gson = new Gson(); /* GSON library */
@@ -181,7 +183,7 @@ public class FingerPrinterApp implements ActionListener {
                     JOptionPane.showMessageDialog(this.mainFrame, "User fingerprint registration is success");
                     System.out.println("result=true;code=1;message=\"User fingerprint registration is success\"");
                 } else {
-                    JOptionPane.showMessageDialog(this.mainFrame, "An error occurred");
+                    JOptionPane.showMessageDialog(this.mainFrame, result.get("message"));
                     System.out.println("result=false;code=0;message=\""+result.get("message")+"\"");
                 }
                 
