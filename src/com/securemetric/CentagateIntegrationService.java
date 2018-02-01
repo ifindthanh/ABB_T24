@@ -61,7 +61,6 @@ public class CentagateIntegrationService {
 
             /* The current time in second (GMT+00:00) */
             unixTimestamp = String.valueOf(new Date().getTime() / 1000L);
-            System.out.println(unixTimestamp);
             /* Put all the required parameters for basic authentication */
             Map<String, String> map = new HashMap<String, String>();
             map.put("username", username);
